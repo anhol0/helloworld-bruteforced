@@ -165,6 +165,17 @@ int scan_for_address(Memory *mem) {
 
             Dl_info info = {0};
 
+            // Here we are testing found address. If the symbol exists there - we found the function
+            // If not - continue testing. Even though function is executed, we may skip its beginning
+            // Because we can actually jump in the middle of the function execution flow.
+            // This check prevents us from detecting false-positives (even though they actually do print our string)
+            // In the end we should se something like:
+            //
+            // probe child pid=<PID> addr=<ADDRESS>
+            // Hello world
+            // FOUND: <SAME ADDRESS>
+            // Function name: hello_world -> our function name
+            // Symbol start:  <SAME ADDRESS>
             if (dladdr((void *)addr, &info)) {
                 if (!info.dli_sname) {
                     continue;
