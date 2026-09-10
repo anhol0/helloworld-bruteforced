@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,6 +7,8 @@
 #include <sys/prctl.h>
 #include <linux/seccomp.h>
 #include <sys/syscall.h>
+#include <stdio.h>
+#include <dlfcn.h>
 
 typedef struct Memory {
     uintptr_t begin, end, offset;
@@ -14,7 +17,7 @@ typedef struct Memory {
 // this compiler extension is needed so compiler doesn't optimize unused function away
 // this marks that this MUST be included in the final executable as a function
 // ig i could've used -O0 compiler flag but that's not fun
-__attribute__((noinline, used))
+__attribute__((noinline, used, visibility("default")))
 int hello_world(void) {
     write(1, "Hello world\n", 12);
     return 69;
@@ -158,7 +161,18 @@ int scan_for_address(Memory *mem) {
         // If process really exited and code was 69 then we caught the fucker
         // This is the address of the hello_world function
         if(WIFEXITED(status) && WEXITSTATUS(status) == 69) {
-            printf("FOUND: 0x%lx\n", ((unsigned long)addr)+(mem->offset));
+            printf("FOUND: 0x%lx\n", (unsigned long)addr);
+
+            Dl_info info = {0};
+
+            if (dladdr((void *)addr, &info)) {
+                if (!info.dli_sname) {
+                    continue;
+                } else {
+                    printf("Function name: %s\n", info.dli_sname);
+                    printf("Symbol start:  %p\n", info.dli_saddr);
+                }
+            }
             return 0;
         }
     }

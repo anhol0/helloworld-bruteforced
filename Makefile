@@ -1,2 +1,2 @@
 all:
-	clang -o main main.c
+	clang -O0 -g -rdynamic -o main main.c -ldl 
