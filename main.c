@@ -11,7 +11,7 @@ typedef struct Memory {
     uintptr_t begin, end, offset;
 } Memory;
 
-// this compiler exiension is needed so compiler doesn't optimize unused function away
+// this compiler extension is needed so compiler doesn't optimize unused function away
 // this marks that this MUST be included in the final executable as a function
 // ig i could've used -O0 compiler flag but that's not fun
 __attribute__((noinline, used))
@@ -118,18 +118,21 @@ int scan_for_address(Memory *mem) {
                    (unsigned long)addr);
             fflush(stdout);
 
-            // Setting strict setcomp mode so this shit can't run any other functions except:
+            // Setting strict setcomp mode so this shit can't call any other syscalls except:
             // read, write, _exit, and sigreturn
             if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_STRICT) < 0) {
                 return -1;
             }
 
-            // Casting pointer to the function pointer with function's signature
+            // Casting address to the function pointer with function's signature
             int (*fn)(void) = (int(*)(void))addr;
             // Calling the mf
             int result = fn();
 
             // We can't use _exit() here cuz this is prohibited by setcomp
+            // Funny - we can't use it because _exit() function
+            // is a wrapper around exit_group syscall which is not allowed to be used
+            // by the struct setcomp mode
             if(result == 69) {
                 syscall(SYS_exit, 69);
             }
