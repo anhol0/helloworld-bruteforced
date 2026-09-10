@@ -89,6 +89,15 @@ So that's exactly what I did in this simple example.
 
    **we successfully brute-forced our own executable memory and found `hello_world`.**
 
+   >  **Note:** Yhe address we found might point in the middle of the function so I added a check. We use `-rdynamic` flag that instructs liker to add ALL the symbols to the dynamic symbol table. This way our address found can atually be tested. If the `info.dli_sname` is empty, but 69 was returned - it was either a false positive OR we jumped inside of the function itself and started execution from the middle. In these cases - we just keep going until we actually find a symbol. The final output should look like: 
+   > ``` 
+   > probe child pid=<PID> addr=<ADDRESS>
+   > Hello world
+   > FOUND: <SAME ADDRESS>
+   > Function name: hello_world
+   > Symbol start:  <SAME ADDRESS> 
+   > ```
+
 
 ## Why is it needed?
 
