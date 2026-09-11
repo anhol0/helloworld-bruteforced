@@ -121,7 +121,7 @@ int scan_for_address(Memory *mem) {
                    (unsigned long)addr);
             fflush(stdout);
 
-            // Setting strict setcomp mode so this shit can't call any other syscalls except:
+            // Setting strict seccomp mode so this shit can't call any other syscalls except:
             // read, write, _exit, and sigreturn
             if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_STRICT) < 0) {
                 return -1;
@@ -132,7 +132,7 @@ int scan_for_address(Memory *mem) {
             // Calling the mf
             int result = fn();
 
-            // We can't use _exit() here cuz this is prohibited by setcomp
+            // We can't use _exit() here cuz this is prohibited by seccomp
             // Funny - we can't use it because _exit() function
             // is a wrapper around exit_group syscall which is not allowed to be used
             // by the struct setcomp mode
